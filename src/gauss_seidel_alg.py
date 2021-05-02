@@ -25,14 +25,13 @@ class GaussSeidel():
 		self.Results = []
 		self.Steps = []
 		self.ResStep = []
-		self.iterationText = ""
+		self.ResultTableData = []
+		self.EndingText = ""
 
 		self.run()
 	
 	def run(self):
 		for iter in range(1, self.maxIter):
-			
-
 			xold = self.currentX.copy();
 			resOld = self.calculateFunction(self.currentX)
 			self.Results.append(resOld)
@@ -48,17 +47,17 @@ class GaussSeidel():
 			self.Steps.append(step_distance)
 			res_disance = abs(res - resOld)
 			self.ResStep.append(res_disance)
-			self.iterationText += 'Pozycja: {}, Wartosc funkcji: {},\nKryterium 1: {}, Kryterium 2: {}, Kryterium 3: {}\n\n'.format(np.around(self.currentX, 3), round(res, 3), round(step_distance, 3), round(res_disance, 3), iter)
+			self.ResultTableData.append([np.around(self.currentX, 3), round(res, 3), round(step_distance, 3), round(res_disance, 3), iter])
 
 			if(step_distance < self.eps):
-				self.iterationText += 'Koniec algorytmu z 1 warunku'
+				self.EndingText = 'Koniec algorytmu z 1 warunku'
 				return
 			if(res_disance < self.eps):
-				self.iterationText += 'Koniec algorytmu z 2 warunku'
+				self.EndingText = 'Koniec algorytmu z 2 warunku'
 				return
 
 			k += 1
-		self.iterationText += 'Koniec algorytmu z 3 warunku'
+		self.EndingText = 'Koniec algorytmu z 3 warunku'
 
 
 	def get_current_X(self):
@@ -67,8 +66,12 @@ class GaussSeidel():
 	def get_current_res(self):
 		return self.currentRes
 
-	def get_iteration_text(self):
-		return self.iterationText
+	def get_result_table_data(self):
+		return self.ResultTableData
+
+	def get_ending_text(self):
+		return self.EndingText
+
 
 	def calculateFunction(self, x):
 		evalDictionary = {self.variables[i]: x[i] for i in range(len(self.variables))}

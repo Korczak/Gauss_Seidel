@@ -93,17 +93,35 @@ class PageStart(tk.Frame):
 
 		outputFrame = tk.Frame(self)
 		iterationLabel = tk.Label(outputFrame, text="Iteracje").grid(row = 1, pady=5, columnspan = 2)
-		self.textView = tk.Text(outputFrame, height = 20)
-		self.textView.grid(row = 2, pady=5, columnspan = 2)
 		
+		self.treeView = ttk.Treeview(outputFrame, columns=5, show='headings')
+		self.treeView['columns']=('Pozycja', 'Wartość funkcji', 'Kryterium 1', 'Kryterium 2', 'Kryterium 3')
+		self.treeView.grid(row = 2, pady=5, columnspan = 2)
+		self.treeView.column('#0', width=0, stretch=tk.NO)
+		self.treeView.column('Pozycja', anchor=tk.CENTER, width=250, stretch=tk.YES)
+		self.treeView.column('Wartość funkcji', anchor=tk.CENTER, width=150, stretch=tk.YES)
+		self.treeView.column('Kryterium 1', anchor=tk.CENTER, width=100, stretch=tk.YES)
+		self.treeView.column('Kryterium 2', anchor=tk.CENTER, width=100, stretch=tk.YES)
+		self.treeView.column('Kryterium 3', anchor=tk.CENTER, width=100, stretch=tk.YES)
+
+		self.treeView.heading('Pozycja', text='Pozycja', anchor=tk.CENTER)
+		self.treeView.heading('Wartość funkcji', text='Wartość funkcji', anchor=tk.CENTER)
+		self.treeView.heading('Kryterium 1', text='Kryterium 1', anchor=tk.CENTER)
+		self.treeView.heading('Kryterium 2', text='Kryterium 2', anchor=tk.CENTER)
+		self.treeView.heading('Kryterium 3', text='Kryterium 3', anchor=tk.CENTER)
+
+		self.endingText = tk.StringVar()
+		self.endingLabel = tk.Label(outputFrame, textvariable=self.endingText)
+		self.endingLabel.grid(row = 3, pady=5, columnspan = 2)
 
 		self.textResult = tk.StringVar()
 		self.textResult.set("Wynik: ")
 		self.resultLabel = tk.Label(outputFrame, textvariable=self.textResult)
-		self.resultLabel.grid(row = 3, pady=5, columnspan = 2)
+		self.resultLabel.grid(row = 4, pady=5, columnspan = 2)
+
 
 		self.showGraphButton = tk.Button(outputFrame, text="Pokaz warstwice", command=lambda: controller.show_frame(PageGraph), state=tk.DISABLED)
-		self.showGraphButton.grid(row = 4, pady=5, columnspan = 2)
+		self.showGraphButton.grid(row = 5, pady=5, columnspan = 2)
 		#showGraphButton.config(state = "disabled")
 
 		inputFrame.grid(row=4, column=0, sticky="NESW", padx = 5)
@@ -134,8 +152,12 @@ class PageStart(tk.Frame):
 			self.showGraphButton['state'] = tk.NORMAL
 		else:
 			self.showGraphButton['state'] = tk.DISABLED
-		
-		self.set_text(self.textView, gaussSeidel.get_iteration_text())
+		self.treeView.delete(*self.treeView.get_children())
+		for result in gaussSeidel.get_result_table_data():
+			self.treeView.insert('', tk.END, values=result)
+
+		self.endingText.set(gaussSeidel.get_ending_text())
+
 		self.textResult.set("Wynik: {}, X = {}".format(round(gaussSeidel.get_current_res(), 3), np.around(gaussSeidel.get_current_X(), 3)))
 
 		try:
@@ -146,6 +168,9 @@ class PageStart(tk.Frame):
 	def set_text(self, text, value):
 	    text.delete('1.0', tk.END)
 	    text.insert(tk.END, value)
+
+	def set_table(self):
+		pass
 
 
 class PageGraph(tk.Frame):
