@@ -198,12 +198,12 @@ class PageGraph(tk.Frame):
 		fig.clear()
 		if(gaussSeidel.is2D()):
 			ax = fig.add_subplot(111)
-			ax = gaussSeidel.generatePlot(ax)
+			ax = gaussSeidel.generatePlot(ax, fig)
 		else:
 			#ax = Axes3D(fig)
 			ax = fig.add_subplot(111, projection="3d")
 			#ax = plt.axes(projection="3d")
-			ax = gaussSeidel.generatePlot(ax)
+			ax = gaussSeidel.generatePlot(ax, fig)
 		self.canvas.draw_idle()
 
 

@@ -78,15 +78,15 @@ class GaussSeidel():
 		value = self.function.evaluate(evalDictionary)
 		return value
 
-	def generatePlot(self, ax):
+	def generatePlot(self, ax, fig):
 		if(len(self.variables) != 2 and len(self.variables) != 3):
 			print("Ilosc zmiennych rozna od 2 lub 3")
 			return ax
 		if(len(self.variables) == 2):
-			return self.generate2DPlot(ax)
-		return self.generate3DPlot(ax)
+			return self.generate2DPlot(ax, fig)
+		return self.generate3DPlot(ax, fig)
 
-	def generate2DPlot(self, ax):
+	def generate2DPlot(self, ax, fig):
 		ax.set_title('Warstwica funkcji')
 		X = np.array(self.innerX)
 		maxXSetRange = max(X[:, 0]) + 2;
@@ -98,11 +98,11 @@ class GaussSeidel():
 
 		ax.set_xlim(minXSetRange, maxXSetRange)
 		ax.set_ylim(minYSetRange, maxYSetRange)
-		ax = self.levelSetPlot(ax, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange)
+		ax = self.levelSetPlot(ax, fig, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange)
 		ax = self.gaussSeidelPlot2D(ax)
 		return ax
 
-	def generate3DPlot(self, ax):
+	def generate3DPlot(self, ax, fig):
 		ax.set_title('Warstwica funkcji')
 		X = np.array(self.innerX)
 		maxXSetRange = max(X[:, 0]) + 2;
@@ -117,11 +117,11 @@ class GaussSeidel():
 		ax.set_xlim(minXSetRange, maxXSetRange)
 		ax.set_ylim(minYSetRange, maxYSetRange)
 		ax.set_zlim(minZSetRange, maxZSetRange)
-		ax = self.levelSet3DPlot(ax, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange, maxZSetRange, minZSetRange)
+		ax = self.levelSet3DPlot(ax, fig, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange, maxZSetRange, minZSetRange)
 		ax = self.gaussSeidelPlot3D(ax)
 		return ax
 
-	def levelSetPlot(self, ax, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange):
+	def levelSetPlot(self, ax, fig, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange):
 		print("Create level set 2D")
 	
 		numberOfVars = 30;
@@ -140,12 +140,14 @@ class GaussSeidel():
 				value = self.calculateFunction(X)
 				levels[i, j] = value
 		
-		ax.contourf(x, y, levels, 50)
+		cs = ax.contourf(x, y, levels, 50)
+		fig.colorbar(cs, ax=ax, shrink=0.9)
+
 		#plt.colorbar()	
 
 		return ax 
 
-	def levelSet3DPlot(self, ax, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange, maxZSetRange, minZSetRange):
+	def levelSet3DPlot(self, ax, fig, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange, maxZSetRange, minZSetRange):
 		print("Create level set 3D")
 		
 		numberOfVars = 30;
@@ -170,7 +172,10 @@ class GaussSeidel():
 		ax.set_xlabel('x')
 		ax.set_ylabel('y')
 		ax.set_zlabel('z')
-		ax.scatter3D(x, y, z, c=levels.flatten(), alpha=0.7, marker='.')
+		cs = ax.scatter3D(x, y, z, c=levels.flatten(), alpha=0.7, marker='.')
+	
+		fig.colorbar(cs, ax=ax, shrink=0.9)
+
 		#plt.show()
 		#ax.plot_surface(x,y,z, facecolors=levels)
 		#ax.contour(x, y, z, levels=levels)
