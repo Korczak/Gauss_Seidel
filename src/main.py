@@ -7,6 +7,7 @@ from matplotlib.figure import Figure
 import matplotlib.animation as animation
 from matplotlib import style
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from mpl_toolkits.mplot3d import Axes3D
 import tkinter as tk
 from tkinter import ttk
 import tkinter.font
@@ -17,13 +18,12 @@ import json
 import pandas as pd
 import numpy as np
 
-from matplotlib import pyplot as plt
-
+from matplotlib.figure import Figure
 from gauss_seidel_alg import GaussSeidel
 
 np.set_printoptions(precision=2)
 gaussSeidel = GaussSeidel(); 
-fig = Figure()
+fig = Figure(figsize=(5, 4), dpi=100)
 LARGE_FONT= ("Verdana", 12)
 DEFAULT_FONT = ("Times New Roman", 12)
 
@@ -73,10 +73,10 @@ class PageStart(tk.Frame):
 		#label.pack(pady=10,padx=10)
 
 		functionLabel = tk.Label(inputFrame, text="F(x) = ").grid(row = 1, column = 0, pady=5)
-		self.functionInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "x1 + x2^2"))
+		self.functionInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "x1 + x2^2 + x3"))
 		self.functionInput.grid(row = 1, column = 1, pady=5, sticky='ew')
 		startPointLabel = tk.Label(inputFrame, text="Poczatkowy punkt = ").grid(row = 2, column = 0, pady=5)
-		self.startPointInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "1.5; 2"))
+		self.startPointInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "1.5; 2; 3"))
 		self.startPointInput.grid(row = 2, column = 1, pady=5, sticky='ew')
 		epsLabel = tk.Label(inputFrame, text="Epsilon = ").grid(row = 3, column = 0, pady=5)
 		self.epsInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "0.0001"))
@@ -129,14 +129,20 @@ class PageStart(tk.Frame):
 			self.maxIterInput.get()
 			)
 
-		self.showGraphButton['state'] = tk.NORMAL
+		canPlot = gaussSeidel.canPlotLevelSets()
+		if(canPlot):
+			self.showGraphButton['state'] = tk.NORMAL
+		else:
+			self.showGraphButton['state'] = tk.DISABLED
+		
 		self.set_text(self.textView, gaussSeidel.get_iteration_text())
 		self.textResult.set("Wynik: {}, X = {}".format(round(gaussSeidel.get_current_res(), 3), np.around(gaussSeidel.get_current_X(), 3)))
+
 		try:
 			controller.get_frame(PageGraph).drawGraph()
 		except Exception as e:
 			print("Graph not exists")
-
+		
 	def set_text(self, text, value):
 	    text.delete('1.0', tk.END)
 	    text.insert(tk.END, value)
@@ -161,11 +167,18 @@ class PageGraph(tk.Frame):
 
 
 	def drawGraph(self):
+		print('Draw graph')
 		global gaussSeidel
 		global fig
 		fig.clear()
-		ax = fig.add_subplot(111)
-		ax = gaussSeidel.generatePlot(ax)
+		if(gaussSeidel.is2D()):
+			ax = fig.add_subplot(111)
+			ax = gaussSeidel.generatePlot(ax)
+		else:
+			#ax = Axes3D(fig)
+			ax = fig.add_subplot(111, projection="3d")
+			#ax = plt.axes(projection="3d")
+			ax = gaussSeidel.generatePlot(ax)
 		self.canvas.draw_idle()
 
 

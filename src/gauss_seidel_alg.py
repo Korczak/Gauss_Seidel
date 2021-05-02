@@ -1,7 +1,6 @@
 import math
 from golden_section import golden_section
 from py_expression_eval import Parser
-from matplotlib import pyplot as plt
 import numpy as np
 
 
@@ -19,6 +18,8 @@ class GaussSeidel():
 		self.currentX = self.start
 		self.currentRes = 1000;
 		self.variables = self.function.variables()
+		self.innerX = []
+		self.innerX.append(self.currentX.copy())
 		self.X = []
 		self.X.append(self.currentX.copy())
 		self.Results = []
@@ -29,33 +30,36 @@ class GaussSeidel():
 		self.run()
 	
 	def run(self):
-		k = 0
 		for iter in range(1, self.maxIter):
-			if k >= len(self.variables):
-				k = 0
+			
+
 			xold = self.currentX.copy();
 			resOld = self.calculateFunction(self.currentX)
 			self.Results.append(resOld)
-			argLocalMin = golden_section(self.calculateFunction, self.currentX, k, self.range)
-			self.currentX[k] = argLocalMin
+			for k in range(0, len(self.variables)):
+				argLocalMin = golden_section(self.calculateFunction, self.currentX, k, self.range)
+				self.currentX[k] = argLocalMin
+				self.innerX.append(self.currentX.copy())
 			self.X.append(self.currentX.copy())
 			res = self.calculateFunction(self.currentX)
 			self.currentRes = res			
-			self.iterationText += 'Iteracja {}, pozycja: {}, wartosc funkcji: {}\n'.format(iter, np.around(self.currentX, 3), round(res, 3))
-			step = [abs(self.currentX[index]- xold[index]) for index in range(0, len(self.variables))]
-			max_step = max(step)
-			self.Steps.append(max_step)
+			step = [(self.currentX[index]- xold[index])**2 for index in range(0, len(self.variables))]
+			step_distance = math.sqrt(sum(step))
+			self.Steps.append(step_distance)
 			res_disance = abs(res - resOld)
 			self.ResStep.append(res_disance)
-			if(max_step < self.eps):
+			self.iterationText += 'Pozycja: {}, Wartosc funkcji: {},\nKryterium 1: {}, Kryterium 2: {}, Kryterium 3: {}\n\n'.format(np.around(self.currentX, 3), round(res, 3), round(step_distance, 3), round(res_disance, 3), iter)
+
+			if(step_distance < self.eps):
 				self.iterationText += 'Koniec algorytmu z 1 warunku'
-				break
+				return
 			if(res_disance < self.eps):
 				self.iterationText += 'Koniec algorytmu z 2 warunku'
-				break
+				return
 
 			k += 1
-				
+		self.iterationText += 'Koniec algorytmu z 3 warunku'
+
 
 	def get_current_X(self):
 		return self.currentX
@@ -72,12 +76,16 @@ class GaussSeidel():
 		return value
 
 	def generatePlot(self, ax):
-		if(len(self.variables) != 2):
-			print("Ilosc zmiennych rozna od 2")
+		if(len(self.variables) != 2 and len(self.variables) != 3):
+			print("Ilosc zmiennych rozna od 2 lub 3")
 			return ax
+		if(len(self.variables) == 2):
+			return self.generate2DPlot(ax)
+		return self.generate3DPlot(ax)
 
+	def generate2DPlot(self, ax):
 		ax.set_title('Warstwica funkcji')
-		X = np.array(self.X)
+		X = np.array(self.innerX)
 		maxXSetRange = max(X[:, 0]) + 2;
 		minXSetRange = min(X[:, 0]) - 2;
 		maxYSetRange = max(X[:, 1]) + 2;
@@ -88,12 +96,30 @@ class GaussSeidel():
 		ax.set_xlim(minXSetRange, maxXSetRange)
 		ax.set_ylim(minYSetRange, maxYSetRange)
 		ax = self.levelSetPlot(ax, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange)
-		ax = self.gaussSeidelPlot(ax)
+		ax = self.gaussSeidelPlot2D(ax)
 		return ax
 
+	def generate3DPlot(self, ax):
+		ax.set_title('Warstwica funkcji')
+		X = np.array(self.innerX)
+		maxXSetRange = max(X[:, 0]) + 2;
+		minXSetRange = min(X[:, 0]) - 2;
+		maxYSetRange = max(X[:, 1]) + 2;
+		minYSetRange = min(X[:, 1]) - 2;
+		maxZSetRange = max(X[:, 2]) + 2;
+		minZSetRange = min(X[:, 2]) - 2;
+
+
+
+		ax.set_xlim(minXSetRange, maxXSetRange)
+		ax.set_ylim(minYSetRange, maxYSetRange)
+		ax.set_zlim(minZSetRange, maxZSetRange)
+		ax = self.levelSet3DPlot(ax, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange, maxZSetRange, minZSetRange)
+		ax = self.gaussSeidelPlot3D(ax)
+		return ax
 
 	def levelSetPlot(self, ax, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange):
-		print("Create level set")
+		print("Create level set 2D")
 	
 		numberOfVars = 30;
 		xDiff = maxXSetRange - minXSetRange
@@ -111,17 +137,70 @@ class GaussSeidel():
 				value = self.calculateFunction(X)
 				levels[i, j] = value
 		
-		ax.contour(x, y, levels, 50)
+		ax.contourf(x, y, levels, 50)
 		#plt.colorbar()	
 
 		return ax 
 
-	def gaussSeidelPlot(self, ax):
+	def levelSet3DPlot(self, ax, maxXSetRange, minXSetRange, maxYSetRange, minYSetRange, maxZSetRange, minZSetRange):
+		print("Create level set 3D")
+		
+		numberOfVars = 30;
+		xDiff = maxXSetRange - minXSetRange
+		yDiff = maxYSetRange - minYSetRange
+		zDiff = maxZSetRange - minZSetRange
+
+		x_ = np.linspace(minXSetRange, maxXSetRange, num=numberOfVars)
+		y_ = np.linspace(minYSetRange, maxYSetRange, num=numberOfVars)
+		z_ = np.linspace(minZSetRange, maxZSetRange, num=numberOfVars)
+		x, y, z = np.meshgrid(x_, y_, z_)
+		levels=np.zeros((len(x),len(y), len(z)))
+		print(levels.shape)
+		#U = np.exp(-(x/2) ** 2 - (y/3) ** 2 - z ** 2)
+		for i in range(len(x)):
+			for j in range(len(y)):
+				for k in range(len(z)):
+					X = [x[i][j][k], y[i][j][k], z[i][j][k]]
+					value = self.calculateFunction(X)
+					levels[i,j,k] = value
+		
+		ax.set_xlabel('x')
+		ax.set_ylabel('y')
+		ax.set_zlabel('z')
+		ax.scatter3D(x, y, z, c=levels.flatten(), alpha=0.7, marker='.')
+		#plt.show()
+		#ax.plot_surface(x,y,z, facecolors=levels)
+		#ax.contour(x, y, z, levels=levels)
+		#plt.colorbar()	
+
+		return ax 
+
+	def gaussSeidelPlot2D(self, ax):
 		x = []
 		y = []
-		for i in range(len(self.X)):
-			x.append(self.X[i][0])
-			y.append(self.X[i][1])
-		print(x)
+		for i in range(len(self.innerX)):
+			x.append(self.innerX[i][0])
+			y.append(self.innerX[i][1])
 		ax.plot(x, y, 'r')
 		return ax
+
+	def gaussSeidelPlot3D(self, ax):
+		x = []
+		y = []
+		z = []
+		for i in range(len(self.innerX)):
+			x.append(self.innerX[i][0])
+			y.append(self.innerX[i][1])
+			z.append(self.innerX[i][2])
+		ax.plot(x, y, z, 'r')
+		return ax
+
+	def canPlotLevelSets(self):
+		if(len(self.variables) != 2 and len(self.variables) != 3):
+			return False
+		return True
+
+	def is2D(self):
+		return len(self.variables) == 2
+	def is3D(self):
+		return len(self.variables) == 3
