@@ -73,10 +73,10 @@ class PageStart(tk.Frame):
 		#label.pack(pady=10,padx=10)
 
 		functionLabel = tk.Label(inputFrame, text="F(x) = ").grid(row = 1, column = 0, pady=5)
-		self.functionInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "x1 + x2^2 + x3"))
+		self.functionInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "100*(x2-x1^2)^2+(1-x1)^2"))
 		self.functionInput.grid(row = 1, column = 1, pady=5, sticky='ew')
 		startPointLabel = tk.Label(inputFrame, text="Poczatkowy punkt = ").grid(row = 2, column = 0, pady=5)
-		self.startPointInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "1.5; 2; 3"))
+		self.startPointInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "-1.2; 1"))
 		self.startPointInput.grid(row = 2, column = 1, pady=5, sticky='ew')
 		epsLabel = tk.Label(inputFrame, text="Epsilon = ").grid(row = 3, column = 0, pady=5)
 		self.epsInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "0.0001"))

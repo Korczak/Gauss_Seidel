@@ -36,8 +36,13 @@ class GaussSeidel():
 			resOld = self.calculateFunction(self.currentX)
 			self.Results.append(resOld)
 			for k in range(0, len(self.variables)):
-				argLocalMin = golden_section(self.calculateFunction, self.currentX, k, self.range)
-				self.currentX[k] = argLocalMin
+				beforeRes = self.calculateFunction(self.currentX)
+				argLocalMin = golden_section(self.calculateFunction, self.currentX.copy(), k, self.range)
+				adjustedX = self.currentX.copy()
+				adjustedX[k] = argLocalMin
+				afterRes = self.calculateFunction(adjustedX)
+				if beforeRes > afterRes:
+					self.currentX[k] = argLocalMin
 				self.innerX.append(self.currentX.copy())
 			self.X.append(self.currentX.copy())
 			res = self.calculateFunction(self.currentX)
