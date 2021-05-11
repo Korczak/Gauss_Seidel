@@ -27,22 +27,27 @@ class GaussSeidel():
 		self.ResStep = []
 		self.ResultTableData = []
 		self.EndingText = ""
+		self.levelSetMargin = 0.1
 
 		self.run()
 	
-	def run(self):
-		for iter in range(1, self.maxIter):
+	def run(self):			
+		formattedCurrentX = ["{:0.5f}".format(v) for v in self.currentX];
+		result = self.calculateFunction(self.currentX)
+		self.ResultTableData.append(["{0}".format(formattedCurrentX), round(result, 5), "-", "-", 0])
+
+		for iter in range(1, self.maxIter + 1):
 			xold = self.currentX.copy();
 			resOld = self.calculateFunction(self.currentX)
 			self.Results.append(resOld)
 			for k in range(0, len(self.variables)):
-				beforeRes = self.calculateFunction(self.currentX)
-				argLocalMin = golden_section(self.calculateFunction, self.currentX.copy(), k, self.range)
-				adjustedX = self.currentX.copy()
-				adjustedX[k] = argLocalMin
-				afterRes = self.calculateFunction(adjustedX)
-				if beforeRes > afterRes:
-					self.currentX[k] = argLocalMin
+				#eforeRes = self.calculateFunction(self.currentX)
+				argLocalMin = golden_section(self.calculateFunction, self.currentX.copy(), k, self.range, self.eps)
+				#adjustedX = self.currentX.copy()
+				#adjustedX[k] = argLocalMin
+				#afterRes = self.calculateFunction(adjustedX)
+				#if beforeRes > afterRes:
+				self.currentX[k] = argLocalMin
 				self.innerX.append(self.currentX.copy())
 			self.X.append(self.currentX.copy())
 			res = self.calculateFunction(self.currentX)
@@ -52,8 +57,8 @@ class GaussSeidel():
 			self.Steps.append(step_distance)
 			res_disance = abs(res - resOld)
 			self.ResStep.append(res_disance)
-			self.ResultTableData.append([np.around(self.currentX, 3), round(res, 3), round(step_distance, 3), round(res_disance, 3), iter])
-
+			formattedCurrentX = ["{:0.5f}".format(v) for v in self.currentX];
+			self.ResultTableData.append(["{0}".format(formattedCurrentX), "{:0.5f}".format(res), "{:0.8f}".format(step_distance), "{:0.8f}".format(res_disance), iter])
 			if(step_distance < self.eps):
 				self.EndingText = 'Koniec algorytmu z 1 warunku'
 				return
@@ -68,6 +73,11 @@ class GaussSeidel():
 	def get_current_X(self):
 		return self.currentX
 
+	def get_formatted_current_X(self):
+		formattedCurrentX = ["{:0.5f}".format(v) for v in self.currentX];
+		return formattedCurrentX
+
+
 	def get_current_res(self):
 		return self.currentRes
 
@@ -80,6 +90,7 @@ class GaussSeidel():
 
 	def calculateFunction(self, x):
 		evalDictionary = {self.variables[i]: x[i] for i in range(len(self.variables))}
+		#print(evalDictionary)
 		value = self.function.evaluate(evalDictionary)
 		return value
 
@@ -94,10 +105,11 @@ class GaussSeidel():
 	def generate2DPlot(self, ax, fig):
 		ax.set_title('Warstwica funkcji')
 		X = np.array(self.innerX)
-		maxXSetRange = max(X[:, 0]) + 2;
-		minXSetRange = min(X[:, 0]) - 2;
-		maxYSetRange = max(X[:, 1]) + 2;
-		minYSetRange = min(X[:, 1]) - 2;
+		maxXSetRange = max(X[:, 0]) + self.levelSetMargin;
+		minXSetRange = min(X[:, 0]) - self.levelSetMargin;
+		maxYSetRange = max(X[:, 1]) + self.levelSetMargin;
+		minYSetRange = min(X[:, 1]) - self.levelSetMargin;
+		print('{} {} {} {}'.format(maxXSetRange, minXSetRange, maxYSetRange, minYSetRange))
 
 
 
@@ -110,12 +122,12 @@ class GaussSeidel():
 	def generate3DPlot(self, ax, fig):
 		ax.set_title('Warstwica funkcji')
 		X = np.array(self.innerX)
-		maxXSetRange = max(X[:, 0]) + 2;
-		minXSetRange = min(X[:, 0]) - 2;
-		maxYSetRange = max(X[:, 1]) + 2;
-		minYSetRange = min(X[:, 1]) - 2;
-		maxZSetRange = max(X[:, 2]) + 2;
-		minZSetRange = min(X[:, 2]) - 2;
+		maxXSetRange = max(X[:, 0]) + self.levelSetMargin;
+		minXSetRange = min(X[:, 0]) - self.levelSetMargin;
+		maxYSetRange = max(X[:, 1]) + self.levelSetMargin;
+		minYSetRange = min(X[:, 1]) - self.levelSetMargin;
+		maxZSetRange = max(X[:, 2]) + self.levelSetMargin;
+		minZSetRange = min(X[:, 2]) - self.levelSetMargin;
 
 
 
@@ -133,8 +145,8 @@ class GaussSeidel():
 		xDiff = maxXSetRange - minXSetRange
 		yDiff = maxYSetRange - minYSetRange
 
-		x_ = np.linspace(minXSetRange - xDiff * 0.3, maxXSetRange + xDiff * 0.3, num=numberOfVars)
-		y_ = np.linspace(minYSetRange - yDiff * 0.3, maxYSetRange + yDiff * 0.3, num=numberOfVars)
+		x_ = np.linspace(minXSetRange - xDiff * 0.1, maxXSetRange + xDiff * 0.1, num=numberOfVars)
+		y_ = np.linspace(minYSetRange - yDiff * 0.1, maxYSetRange + yDiff * 0.1, num=numberOfVars)
 		x, y = np.meshgrid(x_, y_)
 		levels=np.zeros((len(x),len(y)))
 
@@ -195,6 +207,8 @@ class GaussSeidel():
 			x.append(self.innerX[i][0])
 			y.append(self.innerX[i][1])
 		ax.plot(x, y, 'r')
+		markerSize = 40;
+		ax.scatter(self.innerX[len(self.innerX) - 1][0], self.innerX[len(self.innerX) - 1][1], 40)
 		return ax
 
 	def gaussSeidelPlot3D(self, ax):
@@ -205,6 +219,7 @@ class GaussSeidel():
 			x.append(self.innerX[i][0])
 			y.append(self.innerX[i][1])
 			z.append(self.innerX[i][2])
+		#ax.scatter(self.innerX[0][0], self.innerX[0][1], 5)
 		ax.plot(x, y, z, 'r')
 		return ax
 

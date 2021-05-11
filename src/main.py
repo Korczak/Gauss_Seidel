@@ -76,7 +76,7 @@ class PageStart(tk.Frame):
 		self.functionInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "100*(x2-x1^2)^2+(1-x1)^2"))
 		self.functionInput.grid(row = 1, column = 1, pady=5, sticky='ew')
 		startPointLabel = tk.Label(inputFrame, text="Poczatkowy punkt = ").grid(row = 2, column = 0, pady=5)
-		self.startPointInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "-1.2; 1"))
+		self.startPointInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "1; -1.2"))
 		self.startPointInput.grid(row = 2, column = 1, pady=5, sticky='ew')
 		epsLabel = tk.Label(inputFrame, text="Epsilon = ").grid(row = 3, column = 0, pady=5)
 		self.epsInput = tk.Entry(inputFrame, textvariable = tk.StringVar(inputFrame, value = "0.0001"))
@@ -158,7 +158,7 @@ class PageStart(tk.Frame):
 
 		self.endingText.set(gaussSeidel.get_ending_text())
 
-		self.textResult.set("Wynik: {}, X = {}".format(round(gaussSeidel.get_current_res(), 3), np.around(gaussSeidel.get_current_X(), 3)))
+		self.textResult.set("Wynik: {:.5f}, X = {}".format(gaussSeidel.get_current_res(), "{}".format(gaussSeidel.get_formatted_current_X())))
 
 		try:
 			controller.get_frame(PageGraph).drawGraph()
